@@ -12,7 +12,7 @@ type Track = {
     external_urls: { spotify: string };
 };
 
-export default function MusicPlayer({ mood }: { mood: string }) {
+export default function MusicPlayer({ mood, onTracksLoaded }: { mood: string, onTracksLoaded: (tracks: Track[]) => void }) {
     const [tracks, setTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(false);
     const [playingTrack, setPlayingTrack] = useState<string | null>(null);
@@ -26,7 +26,10 @@ export default function MusicPlayer({ mood }: { mood: string }) {
             try {
                 const res = await fetch(`/api/spotify?mood=${mood}`);
                 const data = await res.json();
-                if (data.tracks) setTracks(data.tracks);
+                if (data.tracks) {
+                    setTracks(data.tracks);
+                    onTracksLoaded(data.tracks);
+                }
             } catch (err) {
                 console.error("Failed to fetch music", err);
             }
@@ -35,7 +38,7 @@ export default function MusicPlayer({ mood }: { mood: string }) {
 
         const timeout = setTimeout(fetchMusic, 500);
         return () => clearTimeout(timeout);
-    }, [mood]);
+    }, [mood, onTracksLoaded]);
 
     const togglePlay = (previewUrl: string, trackId: string) => {
         if (playingTrack === trackId) {

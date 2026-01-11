@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as faceapi from "face-api.js";
 import { Camera, Upload, Image as ImageIcon, Play } from "lucide-react";
 
-export default function CameraView({ onMoodChange }: { onMoodChange?: (mood: string) => void }) {
+export default function CameraView({ onMoodChange }: { onMoodChange?: (mood: string, imageSrc: string | null) => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const imageRef = useRef<HTMLImageElement>(null);
@@ -145,7 +145,29 @@ export default function CameraView({ onMoodChange }: { onMoodChange?: (mood: str
     const handleCapture = () => {
         if (expression && onMoodChange) {
             setDebugLog("VIBE CAPTURED!");
-            onMoodChange(expression);
+            // Pass mood AND image (if uploaded)
+            // For live camera, we would need to capture a frame from video/canvas, 
+            // but for now let's pass null if no uploadedImage, or capture canvas content?
+            // Let's assume for this step we are using uploadedImage mostly or I'll implement canvas capture later.
+            // Actually, let's capture the canvas to dataUrl if in camera mode!
+            let finalImage = uploadedImage;
+
+            if (mode === 'camera' && videoRef.current && canvasRef.current) {
+                // Draw current video frame to canvas then export
+                const video = videoRef.current;
+                const canvas = document.createElement('canvas'); // New canvas to avoid messing with survey
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1); // Flip because we mirror video
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    finalImage = canvas.toDataURL('image/png');
+                }
+            }
+
+            onMoodChange(expression, finalImage);
         } else {
             setDebugLog("NEED FACE FIRST!");
         }
