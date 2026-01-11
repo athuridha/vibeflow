@@ -50,7 +50,7 @@ export default function VibeCard({ mood, imageSrc, tracks, onClose }: VibeCardPr
             if (navigator.share) {
                 await navigator.share({
                     title: 'My VibeFlow Unwrapped',
-                    text: `I'm feeling ${mood.toUpperCase()} today! Check out my vibe.`,
+                    text: `I'm feeling ${mood.toUpperCase()} today!`,
                     files: [file]
                 });
             } else {
@@ -66,48 +66,48 @@ export default function VibeCard({ mood, imageSrc, tracks, onClose }: VibeCardPr
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="relative animate-in zoom-in-95 duration-300">
                 {/* Close Button */}
-                <button onClick={onClose} className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors">
-                    <X className="w-8 h-8" />
+                <button onClick={onClose} className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors">
+                    <X className="w-7 h-7" />
                 </button>
 
-                {/* THE CARD */}
-                <div id="vibe-card" className={`w-full max-w-[350px] aspect-[9/16] ${getMoodColor()} border-4 shadow-[10px_10px_0px_0px_rgba(255,255,255,1)] p-5 flex flex-col justify-between relative overflow-hidden`}>
+                {/* THE CARD - 9:16 Aspect Ratio */}
+                <div id="vibe-card" className={`w-[270px] aspect-[9/16] ${getMoodColor()} border-4 shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] p-3 flex flex-col justify-between relative overflow-hidden`}>
                     {/* Background Pattern */}
-                    <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '10px 10px' }}></div>
+                    <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '8px 8px' }}></div>
 
                     {/* Header */}
-                    <div className="relative z-10 text-center border-b-2 border-black pb-2 mb-2">
-                        <h1 className="font-black text-2xl tracking-tighter leading-none">VIBEFLOW</h1>
-                        <p className="font-mono text-[10px] font-bold uppercase tracking-widest mt-0.5">UNWRAPPED {new Date().getFullYear()}</p>
+                    <div className="relative z-10 text-center border-b-2 border-black pb-1.5">
+                        <h1 className="font-black text-lg tracking-tighter leading-none">VIBEFLOW</h1>
+                        <p className="font-mono text-[7px] font-bold uppercase tracking-widest">UNWRAPPED {new Date().getFullYear()}</p>
                     </div>
 
-                    {/* Content */}
-                    <div className="relative z-10 flex-1 flex flex-col items-center">
-                        {/* Photo */}
-                        <div className="w-28 h-28 border-4 border-black bg-white shadow-brutal-sm rotate-2 mb-2 overflow-hidden relative">
+                    {/* Photo + Mood */}
+                    <div className="relative z-10 flex justify-center my-2">
+                        <div className="w-24 h-24 border-3 border-black bg-white shadow-brutal-sm rotate-2 overflow-hidden relative">
                             {imageSrc ? (
                                 <img src={imageSrc} alt="My Vibe" className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center font-bold text-gray-400">NO PHOTO</div>
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center font-bold text-gray-400 text-[8px]">NO PHOTO</div>
                             )}
-                            {/* Mood Sticker */}
-                            <div className={`absolute -bottom-1 -right-1 px-2 py-0.5 border-2 border-black font-black text-base uppercase rotate-[-10deg] shadow-sm ${mood === 'sad' || mood === 'angry' ? 'bg-white text-black' : 'bg-black text-white'}`}>
+                            <div className={`absolute -bottom-0.5 -right-0.5 px-1.5 py-0.5 border border-black font-black text-[9px] uppercase rotate-[-8deg] ${mood === 'sad' || mood === 'angry' ? 'bg-white text-black' : 'bg-black text-white'}`}>
                                 {mood}
                             </div>
                         </div>
+                    </div>
 
-                        {/* TOP 3 TRACKS */}
-                        <div className="w-full space-y-1.5 mt-1">
-                            <p className="text-[9px] font-bold text-gray-500 uppercase text-center bg-white border-2 border-black inline-block px-2 py-0.5 mx-auto transform -rotate-1">
-                                YOUR VIBE PLAYLIST:
-                            </p>
-                            {tracks.slice(0, 3).map((track, i) => (
-                                <div key={i} className="w-full bg-white border-2 border-black p-1.5 shadow-brutal-sm flex items-center gap-2">
-                                    <span className="font-black text-sm text-gray-300 w-4 text-center shrink-0">#{i + 1}</span>
-                                    <img src={track.album.images[0]?.url} alt="" className="w-7 h-7 border border-black shrink-0" />
-                                    <div className="overflow-hidden">
-                                        <p className="font-black text-[10px] truncate text-black">{track.name}</p>
-                                        <p className="font-mono text-[8px] truncate text-gray-600">{track.artists[0]?.name}</p>
+                    {/* TOP 5 TRACKS */}
+                    <div className="relative z-10 flex-1 flex flex-col">
+                        <p className="text-[6px] font-bold text-gray-500 uppercase text-center bg-white border border-black inline-block px-1 py-0.5 mx-auto mb-1 transform -rotate-1">
+                            YOUR VIBE PLAYLIST
+                        </p>
+                        <div className="space-y-[3px] flex-1">
+                            {tracks.slice(0, 5).map((track, i) => (
+                                <div key={i} className="w-full bg-white border border-black p-[3px] flex items-center gap-1">
+                                    <span className="font-black text-[7px] text-gray-400 w-2.5 shrink-0 text-center">{i + 1}</span>
+                                    <img src={track.album.images[0]?.url} alt="" className="w-5 h-5 border border-black shrink-0" />
+                                    <div className="overflow-hidden flex-1">
+                                        <p className="font-bold text-[7px] truncate text-black leading-tight">{track.name}</p>
+                                        <p className="font-mono text-[5px] truncate text-gray-500">{track.artists[0]?.name}</p>
                                     </div>
                                 </div>
                             ))}
@@ -115,18 +115,18 @@ export default function VibeCard({ mood, imageSrc, tracks, onClose }: VibeCardPr
                     </div>
 
                     {/* Footer */}
-                    <div className="relative z-10 mt-2 pt-2 border-t-2 border-black text-center">
-                        <p className="font-mono text-[10px] font-bold">{typeof window !== 'undefined' ? window.location.hostname : 'vibeflow.vercel.app'}</p>
+                    <div className="relative z-10 pt-1.5 border-t-2 border-black text-center">
+                        <p className="font-mono text-[7px] font-bold">{typeof window !== 'undefined' ? window.location.hostname : 'vibeflow.vercel.app'}</p>
                     </div>
                 </div>
 
                 {/* Actions */}
-                <div className="mt-6 flex gap-4 justify-center">
-                    <button onClick={handleDownload} className="bg-white text-black border-4 border-black px-5 py-2 font-bold shadow-brutal hover:scale-105 transition-transform flex items-center gap-2">
-                        <Download className="w-5 h-5" /> SAVE
+                <div className="mt-4 flex gap-3 justify-center">
+                    <button onClick={handleDownload} className="bg-white text-black border-3 border-black px-4 py-1.5 font-bold text-sm shadow-brutal hover:scale-105 transition-transform flex items-center gap-1.5">
+                        <Download className="w-4 h-4" /> SAVE
                     </button>
-                    <button onClick={handleShare} className="bg-vibeflow-green text-black border-4 border-black px-5 py-2 font-bold shadow-brutal hover:scale-105 transition-transform flex items-center gap-2">
-                        <Share2 className="w-5 h-5" /> SHARE
+                    <button onClick={handleShare} className="bg-vibeflow-green text-black border-3 border-black px-4 py-1.5 font-bold text-sm shadow-brutal hover:scale-105 transition-transform flex items-center gap-1.5">
+                        <Share2 className="w-4 h-4" /> SHARE
                     </button>
                 </div>
             </div>
