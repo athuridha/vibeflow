@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import { Play, Pause, Disc, Music, ExternalLink } from 'lucide-react';
+import { Play, Pause, Disc, Music, ExternalLink, Sparkles } from 'lucide-react';
 
 type Track = {
     id: string;
@@ -12,10 +12,18 @@ type Track = {
     external_urls: { spotify: string };
 };
 
-export default function MusicPlayer({ mood, onTracksLoaded }: { mood: string, onTracksLoaded: (tracks: Track[]) => void }) {
+interface MusicPlayerProps {
+    mood: string;
+    onTracksLoaded: (tracks: Track[]) => void;
+    isLoggedIn?: boolean;
+}
+
+export default function MusicPlayer({ mood, onTracksLoaded, isLoggedIn = false }: MusicPlayerProps) {
     const [tracks, setTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(false);
     const [playingTrack, setPlayingTrack] = useState<string | null>(null);
+    const [isPersonalized, setIsPersonalized] = useState(false);
+    const [seedArtists, setSeedArtists] = useState<string[]>([]);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
@@ -23,7 +31,27 @@ export default function MusicPlayer({ mood, onTracksLoaded }: { mood: string, on
 
         const fetchMusic = async () => {
             setLoading(true);
+            setIsPersonalized(false);
+            setSeedArtists([]);
+
             try {
+                // Try personalized endpoint first if logged in
+                if (isLoggedIn) {
+                    const personalizedRes = await fetch(`/api/spotify/personalized?mood=${mood}`);
+                    if (personalizedRes.ok) {
+                        const data = await personalizedRes.json();
+                        if (data.tracks && data.tracks.length > 0) {
+                            setTracks(data.tracks);
+                            onTracksLoaded(data.tracks);
+                            setIsPersonalized(true);
+                            setSeedArtists(data.seedArtists || []);
+                            setLoading(false);
+                            return;
+                        }
+                    }
+                }
+
+                // Fallback to generic search
                 const res = await fetch(`/api/spotify?mood=${mood}`);
                 const data = await res.json();
                 if (data.tracks) {
@@ -38,7 +66,7 @@ export default function MusicPlayer({ mood, onTracksLoaded }: { mood: string, on
 
         const timeout = setTimeout(fetchMusic, 500);
         return () => clearTimeout(timeout);
-    }, [mood, onTracksLoaded]);
+    }, [mood, onTracksLoaded, isLoggedIn]);
 
     const togglePlay = (previewUrl: string, trackId: string) => {
         if (playingTrack === trackId) {
@@ -63,16 +91,28 @@ export default function MusicPlayer({ mood, onTracksLoaded }: { mood: string, on
     return (
         <div className="flex-1 border-4 border-black bg-white shadow-brutal overflow-hidden flex flex-col">
             {/* Header */}
-            <div className={`px-4 py-2 font-bold text-sm border-b-4 border-black ${getMoodColor()}`}>
-                PLAYING FOR: <span className="uppercase">{mood}</span>
+            <div className={`px-4 py-2 font-bold text-sm border-b-4 border-black ${getMoodColor()} flex justify-between items-center`}>
+                <span>PLAYING FOR: <span className="uppercase">{mood}</span></span>
+                {isPersonalized && (
+                    <span className="flex items-center gap-1 text-xs bg-black text-white px-2 py-0.5">
+                        <Sparkles className="w-3 h-3" /> FOR YOU
+                    </span>
+                )}
             </div>
+
+            {/* Personalized Badge */}
+            {isPersonalized && seedArtists.length > 0 && (
+                <div className="bg-gray-100 border-b-2 border-black px-3 py-1.5 text-xs">
+                    <span className="font-bold">Based on:</span> {seedArtists.join(', ')}
+                </div>
+            )}
 
             {/* Content */}
             <div className="flex-1 p-4 overflow-y-auto">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4 py-12">
                         <Disc className="w-16 h-16 animate-spin" />
-                        <p className="font-bold text-xl">DIGGING CRATES...</p>
+                        <p className="font-bold text-xl">{isLoggedIn ? 'PERSONALIZING...' : 'DIGGING CRATES...'}</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
