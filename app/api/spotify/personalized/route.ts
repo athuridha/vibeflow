@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { moodGenres } from '@/lib/spotify';
 
-// Mood constraints for audio features
+// Mood constraints for audio features (Relaxed to find more matches)
 const moodConstraints: Record<string, (features: any) => boolean> = {
-    happy: (f) => f.valence >= 0.6 && f.energy >= 0.5,
-    sad: (f) => f.valence <= 0.4,
-    angry: (f) => f.energy >= 0.7 && f.valence <= 0.5,
-    neutral: (f) => f.energy <= 0.6 && f.valence >= 0.3 && f.valence <= 0.7,
-    surprised: (f) => f.energy >= 0.7
+    happy: (f) => f.valence >= 0.5 && f.energy >= 0.5, // Reduced valence from 0.6
+    sad: (f) => f.valence <= 0.45, // Increased from 0.4
+    angry: (f) => f.energy >= 0.6, // Removed valence check, focus on energy
+    neutral: (f) => f.energy <= 0.65 && f.valence >= 0.3 && f.valence <= 0.7,
+    surprised: (f) => f.energy >= 0.6
 };
 
 // Target attributes for recommendations (fallback & guiding)
@@ -87,12 +87,23 @@ export async function GET(request: NextRequest) {
         if (seedTracks.length > 0) {
             recommendationsUrl.searchParams.set('seed_tracks', seedTracks.join(','));
         } else {
-            // FALLBACK: Use mood-base Genres if no history matches
+            // FALLBACK STRATEGY: Hybrid (Best of both worlds)
+            // Use 1 Top Artist from history (to keep it familiar) + 1 Mood Genre (to fit the vibe)
             const genres = moodGenres[mood] || moodGenres.neutral;
-            // Pick 2 random genres
-            const selectedGenres = genres.sort(() => 0.5 - Math.random()).slice(0, 2);
-            recommendationsUrl.searchParams.set('seed_genres', selectedGenres.join(','));
-            debugSource = "Fallback Mood Genres";
+            const selectedGenre = genres[Math.floor(Math.random() * genres.length)];
+
+            // Get the primary artist from the user's #1 top track
+            const fallbackArtist = topTracks[0]?.artists[0]?.id;
+
+            if (fallbackArtist) {
+                recommendationsUrl.searchParams.set('seed_artists', fallbackArtist);
+                recommendationsUrl.searchParams.set('seed_genres', selectedGenre);
+                debugSource = "Hybrid Fallback (Artist + Genre)";
+            } else {
+                // Absolute fallback if no top tracks exist
+                recommendationsUrl.searchParams.set('seed_genres', selectedGenre);
+                debugSource = "Genre Fallback";
+            }
         }
 
         // Set target attributes (to guide the recommendations further)

@@ -29,7 +29,7 @@ export default function VibeCard({ mood, imageSrc, tracks, onClose }: VibeCardPr
         if (!node) return;
         try {
             const htmlToImage = await import('html-to-image');
-            const dataUrl = await htmlToImage.toPng(node);
+            const dataUrl = await htmlToImage.toPng(node, { pixelRatio: 4, skipAutoScale: true });
             const link = document.createElement('a');
             link.download = `vibeflow-unwrapped-${Date.now()}.png`;
             link.href = dataUrl;
@@ -44,7 +44,7 @@ export default function VibeCard({ mood, imageSrc, tracks, onClose }: VibeCardPr
         if (!node) return;
         try {
             const htmlToImage = await import('html-to-image');
-            const dataUrl = await htmlToImage.toPng(node);
+            const dataUrl = await htmlToImage.toPng(node, { pixelRatio: 4, skipAutoScale: true });
             const blob = await (await fetch(dataUrl)).blob();
             const file = new File([blob], 'my-vibe.png', { type: 'image/png' });
             if (navigator.share) {
