@@ -42,8 +42,8 @@ export default function VibePage() {
                     </div>
                     {/* Pass mood and image handler */}
                     <CameraView onMoodChange={handleMoodChange} />
-                    <p className="mt-4 font-mono font-bold text-sm bg-white p-3 border-2 border-black text-center">
-                        📷 Jagalah wajah tetap di dalam kotak agar AI bisa membaca auramu.
+                    <p className="mt-4 font-black text-xs bg-black text-white p-2 border-2 border-black text-center uppercase tracking-wider">
+                        ⚡ TUNJUKKAN EKSPRESI TERBAIKMU
                     </p>
                 </div>
 

@@ -76,15 +76,15 @@ export default function VibeCard({ mood, imageSrc, tracks, onClose }: VibeCardPr
                     <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '10px 10px' }}></div>
 
                     {/* Header */}
-                    <div className="relative z-10 text-center border-b-4 border-black pb-3 mb-3">
-                        <h1 className="font-black text-3xl tracking-tighter leading-none">VIBEFLOW</h1>
-                        <p className="font-mono text-xs font-bold uppercase tracking-widest mt-1">UNWRAPPED {new Date().getFullYear()}</p>
+                    <div className="relative z-10 text-center border-b-2 border-black pb-2 mb-2">
+                        <h1 className="font-black text-2xl tracking-tighter leading-none">VIBEFLOW</h1>
+                        <p className="font-mono text-[10px] font-bold uppercase tracking-widest mt-0.5">UNWRAPPED {new Date().getFullYear()}</p>
                     </div>
 
                     {/* Content */}
                     <div className="relative z-10 flex-1 flex flex-col items-center">
                         {/* Photo */}
-                        <div className="w-36 h-36 border-4 border-black bg-white shadow-brutal-sm rotate-2 mb-4 overflow-hidden relative">
+                        <div className="w-28 h-28 border-4 border-black bg-white shadow-brutal-sm rotate-2 mb-2 overflow-hidden relative">
                             {imageSrc ? (
                                 <img src={imageSrc} alt="My Vibe" className="w-full h-full object-cover" />
                             ) : (
@@ -115,8 +115,8 @@ export default function VibeCard({ mood, imageSrc, tracks, onClose }: VibeCardPr
                     </div>
 
                     {/* Footer */}
-                    <div className="relative z-10 mt-4 pt-3 border-t-4 border-black text-center">
-                        <p className="font-mono text-[10px] font-bold">vibeflow.vercel.app</p>
+                    <div className="relative z-10 mt-2 pt-2 border-t-2 border-black text-center">
+                        <p className="font-mono text-[10px] font-bold">{typeof window !== 'undefined' ? window.location.hostname : 'vibeflow.vercel.app'}</p>
                     </div>
                 </div>
 
