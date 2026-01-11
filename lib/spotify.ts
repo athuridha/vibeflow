@@ -31,12 +31,28 @@ const getAccessToken = async () => {
 };
 
 // Genre pools for each mood
-const moodGenres: Record<string, string[]> = {
-    happy: ['pop', 'dance', 'happy', 'funk', 'disco', 'upbeat', 'party', 'summer'],
-    sad: ['acoustic', 'sad', 'ballad', 'melancholy', 'piano', 'emotional', 'indie folk'],
-    angry: ['metal', 'rock', 'punk', 'hardcore', 'grunge', 'industrial', 'rage'],
-    neutral: ['chill', 'lofi', 'ambient', 'jazz', 'instrumental'],
-    surprised: ['electronic', 'edm', 'synthwave', 'house', 'dubstep']
+// Genre pools for each mood (Using only real Spotify genres)
+export const moodGenres: Record<string, string[]> = {
+    happy: [
+        'pop', 'dance', 'funk', 'disco', 'house', 'reggaeton', 'k-pop',
+        'hip-hop', 'r-n-b', 'soul', 'indie-pop', 'tropical-house', 'synth-pop', 'power-pop'
+    ],
+    sad: [
+        'acoustic', 'piano', 'indie', 'sleep', 'ambient', 'sad',
+        'ballad', 'folk', 'singer-songwriter', 'blues', 'classical', 'emo'
+    ],
+    angry: [
+        'metal', 'rock', 'punk', 'grunge', 'industrial', 'alt-rock',
+        'hardcore', 'metalcore', 'heavy-metal', 'garage', 'psych-rock'
+    ],
+    neutral: [
+        'chill', 'lo-fi', 'study', 'jazz', 'instrumental', 'bossa-nova',
+        'classical', 'minimal-techno', 'trip-hop', 'groove'
+    ],
+    surprised: [
+        'electronic', 'techno', 'dubstep', 'psytrance', 'hyperpop',
+        'drum-and-bass', 'glitch-hop', 'idm', 'breakbeat', 'experimental', 'club'
+    ]
 };
 
 // Shuffle array helper
@@ -53,18 +69,15 @@ export const getRecommendations = async (mood: string) => {
     const tokenData = await getAccessToken();
     if (!tokenData?.access_token) return [];
 
-    // Get random genre(s) from the mood's genre pool
+    // Get random genre from the mood's genre pool
     const genres = moodGenres[mood] || moodGenres.neutral;
-    const shuffledGenres = shuffleArray(genres);
+    const selectedGenre = genres[Math.floor(Math.random() * genres.length)];
 
-    // Pick 1-2 random genres and combine
-    const selectedGenres = shuffledGenres.slice(0, Math.random() > 0.5 ? 2 : 1);
-    const query = selectedGenres.join(' ');
+    // Random offset (0-100) to get different results each time
+    const randomOffset = Math.floor(Math.random() * 100);
 
-    // Random offset (0-50) to get different results each time
-    const randomOffset = Math.floor(Math.random() * 50);
-
-    const url = `${SEARCH_ENDPOINT}?q=${encodeURIComponent(query)}&type=track&limit=10&offset=${randomOffset}`;
+    // Search by genre tag for better results
+    const url = `${SEARCH_ENDPOINT}?q=genre:${encodeURIComponent(selectedGenre)}&type=track&limit=10&offset=${randomOffset}`;
 
     const response = await fetch(url, {
         headers: {

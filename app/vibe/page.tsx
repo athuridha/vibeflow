@@ -53,22 +53,24 @@ export default function VibePage() {
                 <div className="flex items-center gap-3">
                     {spotifyUser ? (
                         <div className="flex items-center gap-2">
-                            <div className="bg-green-500 text-white px-3 py-1 border-2 border-black font-bold text-sm flex items-center gap-2">
+                            <div className="hidden md:flex items-center gap-2 bg-black text-vibeflow-green px-3 py-1.5 border-2 border-black font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                <span className="animate-pulse">●</span> ONLINE
+                            </div>
+                            <div className="bg-white text-black px-3 py-1.5 border-2 border-black font-bold text-sm flex items-center gap-2 shadow-brutal-sm">
                                 <User className="w-4 h-4" />
-                                <span className="hidden sm:inline">{spotifyUser}</span>
+                                <span className="max-w-[100px] truncate">{spotifyUser}</span>
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="bg-white text-black px-3 py-1 border-2 border-black font-bold text-sm flex items-center gap-1 hover:bg-red-100"
+                                className="bg-vibeflow-red text-white px-3 py-1.5 border-2 border-black font-bold text-sm flex items-center gap-1 hover:brightness-110 shadow-brutal-sm transition-transform active:translate-y-0.5 active:shadow-none"
                             >
                                 <LogOut className="w-4 h-4" />
-                                <span className="hidden sm:inline">LOGOUT</span>
                             </button>
                         </div>
                     ) : (
                         <a
                             href="/api/auth/login"
-                            className="bg-green-500 text-white px-4 py-2 border-2 border-black font-bold text-sm flex items-center gap-2 hover:bg-green-600 transition-colors shadow-brutal-sm"
+                            className="bg-vibeflow-green text-black px-4 py-2 border-2 border-black font-black text-sm flex items-center gap-2 hover:scale-105 transition-transform shadow-brutal-sm"
                         >
                             <LogIn className="w-4 h-4" />
                             LOGIN SPOTIFY
@@ -77,15 +79,17 @@ export default function VibePage() {
                 </div>
             </header>
 
-            {/* Title */}
-            <div className="text-center mb-6">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tighter bg-white border-4 border-black px-4 py-1 shadow-brutal-sm inline-block">
+            {/* Title & Badge */}
+            <div className="flex flex-col items-center gap-2 mb-8">
+                <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-white border-4 border-black px-6 py-2 shadow-brutal rotate-[-2deg]">
                     VIBE ROOM
                 </h1>
+
                 {spotifyUser && (
-                    <p className="mt-2 font-mono text-sm bg-black text-green-400 px-3 py-1 inline-block border border-green-500">
-                        ✨ Personalized Mode Active
-                    </p>
+                    <div className="flex items-center gap-2 bg-black text-white px-3 py-1 border-2 border-white outline outline-2 outline-black rotate-1 mt-2 animate-in zoom-in duration-300">
+                        <span className="text-xl">✨</span>
+                        <span className="font-bold text-xs uppercase tracking-widest">Personalized Mode</span>
+                    </div>
                 )}
             </div>
 
