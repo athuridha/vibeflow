@@ -70,75 +70,88 @@ export async function GET(request: NextRequest) {
 
                 if (matchingTracks.length > 0) {
                     // We found tracks from user history that match the mood!
-                    // Pick up to 5 random ones as seeds
-                    const shuffled = matchingTracks.sort(() => 0.5 - Math.random());
-                    seedTracks = shuffled.slice(0, 5).map((t: any) => t.id);
-                    debugSource = `User History (${matchingTracks.length} matches)`;
+                    // 1. Take up to 5 of them DIRECTLY into the final list (Prioritize user's actual music)
+                    const shuffledMatches = matchingTracks.sort(() => 0.5 - Math.random());
+
+                    // Keep 3-4 actual top tracks
+                    finalTracks = shuffledMatches.slice(0, 4);
+
+                    // Use them as seeds for the rest
+                    seedTracks = finalTracks.map((t: any) => t.id);
+                    debugSource = `User History (${finalTracks.length} direct tracks)`;
                 }
             }
         }
 
-        // 4. Prepare parameters for Recommendations API
-        const recommendationsUrl = new URL('https://api.spotify.com/v1/recommendations');
-        recommendationsUrl.searchParams.set('limit', '10');
-        recommendationsUrl.searchParams.set('market', 'ID');
+        // 4. Fill the rest with Recommendations
+        const spotsLeft = 10 - finalTracks.length;
+        let recommendedTracks: any[] = [];
 
-        // Set seeds
-        if (seedTracks.length > 0) {
-            recommendationsUrl.searchParams.set('seed_tracks', seedTracks.join(','));
-        } else {
-            // FALLBACK STRATEGY: Hybrid (Best of both worlds)
-            // Use 1 Top Artist from history (to keep it familiar) + 1 Mood Genre (to fit the vibe)
-            const genres = moodGenres[mood] || moodGenres.neutral;
-            const selectedGenre = genres[Math.floor(Math.random() * genres.length)];
+        if (spotsLeft > 0) {
+            const recommendationsUrl = new URL('https://api.spotify.com/v1/recommendations');
+            recommendationsUrl.searchParams.set('limit', spotsLeft.toString());
+            recommendationsUrl.searchParams.set('market', 'ID');
 
-            // Get the primary artist from the user's #1 top track
-            const fallbackArtist = topTracks[0]?.artists[0]?.id;
-
-            if (fallbackArtist) {
-                recommendationsUrl.searchParams.set('seed_artists', fallbackArtist);
-                recommendationsUrl.searchParams.set('seed_genres', selectedGenre);
-                debugSource = "Hybrid Fallback (Artist + Genre)";
+            // Set seeds
+            if (seedTracks.length > 0) {
+                // Max 5 seeds allowed by Spotify
+                const seeds = seedTracks.slice(0, 5);
+                recommendationsUrl.searchParams.set('seed_tracks', seeds.join(','));
             } else {
-                // Absolute fallback if no top tracks exist
-                recommendationsUrl.searchParams.set('seed_genres', selectedGenre);
-                debugSource = "Genre Fallback";
+                // FALLBACK STRATEGY
+                const genres = moodGenres[mood] || moodGenres.neutral;
+                const selectedGenre = genres[Math.floor(Math.random() * genres.length)];
+                const fallbackArtist = topTracks[0]?.artists[0]?.id;
+
+                if (fallbackArtist) {
+                    recommendationsUrl.searchParams.set('seed_artists', fallbackArtist);
+                    recommendationsUrl.searchParams.set('seed_genres', selectedGenre);
+                    debugSource = "Hybrid Fallback (Artist + Genre)";
+                } else {
+                    recommendationsUrl.searchParams.set('seed_genres', selectedGenre);
+                    debugSource = "Genre Fallback";
+                }
+            }
+
+            // Set target attributes
+            const attributes = moodAttributes[mood] || moodAttributes.happy;
+            recommendationsUrl.searchParams.set('target_valence', attributes.valence.toString());
+            recommendationsUrl.searchParams.set('target_energy', attributes.energy.toString());
+            if (attributes.danceability) {
+                recommendationsUrl.searchParams.set('target_danceability', attributes.danceability.toString());
+            }
+
+            // Fetch Final Recommendations
+            const recsResponse = await fetch(recommendationsUrl.toString(), {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            if (recsResponse.ok) {
+                const recsData = await recsResponse.json();
+                recommendedTracks = recsData.tracks;
             }
         }
 
-        // Set target attributes (to guide the recommendations further)
-        const attributes = moodAttributes[mood] || moodAttributes.happy;
-        recommendationsUrl.searchParams.set('target_valence', attributes.valence.toString());
-        recommendationsUrl.searchParams.set('target_energy', attributes.energy.toString());
-        if (attributes.danceability) {
-            recommendationsUrl.searchParams.set('target_danceability', attributes.danceability.toString());
-        }
-
-        // 5. Fetch Final Recommendations
-        const recsResponse = await fetch(recommendationsUrl.toString(), {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-
-        if (!recsResponse.ok) throw new Error('Failed to fetch recommendations');
-
-        const recsData = await recsResponse.json();
+        // Combine Top Tracks + Recommendations
+        // Shuffle them together so it's a mix, or keep Top Tracks at top?
+        // Let's keep Top Tracks at the top for immediate familiarity, then recommendations
+        const allTracks = [...finalTracks, ...recommendedTracks];
 
         // Prepare display info (What seeds were used?)
         let seedDisplayNames: string[] = [];
         if (seedTracks.length > 0) {
-            // Find names of the seed tracks
             seedDisplayNames = topTracks
                 .filter((t: any) => seedTracks.includes(t.id))
                 .map((t: any) => t.name)
-                .slice(0, 2); // Show first 2 names
+                .slice(0, 2);
         } else {
             seedDisplayNames = [`${mood.toUpperCase()} Vibes`];
         }
 
         return NextResponse.json({
-            tracks: recsData.tracks,
-            seedArtists: seedDisplayNames, // Reusing this field name to show source on UI
-            debug: { source: debugSource, seedCount: seedTracks.length },
+            tracks: allTracks,
+            seedArtists: seedDisplayNames,
+            debug: { source: debugSource, directMatches: finalTracks.length },
             personalized: true,
         });
 

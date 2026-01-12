@@ -174,7 +174,7 @@ export default function CameraView({ onMoodChange }: { onMoodChange?: (mood: str
     };
 
     return (
-        <div className="relative border-4 border-black p-2 bg-black shadow-brutal w-full max-w-[640px] mx-auto">
+        <div className="relative border-4 border-black p-2 bg-black shadow-brutal w-full lg:w-[450px] mx-auto">
             <div className="flex gap-2 mb-2">
                 <button onClick={() => { setMode('camera'); setIsCameraActive(false); }} className={`flex-1 font-bold py-2 border-2 border-black flex items-center justify-center gap-2 ${mode === 'camera' ? 'bg-vibeflow-yellow' : 'bg-gray-200'}`}>
                     <Camera className="w-4 h-4" /> LIVE CAM
