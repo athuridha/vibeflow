@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
         const topTrackIds = topTracks.map((t: any) => t.id).join(',');
 
         let seedTracks: string[] = [];
+        let finalTracks: any[] = [];
         let debugSource = "Generic Genres";
 
         if (topTrackIds) {
